@@ -1,0 +1,123 @@
+- name: Ensure a locale exists
+  locale_gen:
+    name: zh_CN.UTF-8
+    state: present
+  become: true
+
+- name: Install a zabbix repo package from the internet.
+  apt:
+    deb: https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-2+bionic_all.deb
+  register: zabbix_repo_changed
+  become: true
+
+- name: Update apt cache after zabbix repo changed
+  apt: 
+    update_cache: yes
+  when: zabbix_repo_changed.changed
+  become: true
+
+- name: install zabbix
+  package:
+    pkg: zabbix-server-mysql
+    state: latest
+  become: true
+
+- name: new zabbix db
+  mysql_db:
+    name: zabbix
+    encoding: utf8
+    collation: utf8_general_ci
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  register: zabbix_db_first_created 
+  become: true
+
+- name: add mysql user zabbix
+  mysql_user:
+    name: zabbix
+    password: "{{ MYSQL_PASSWORD }}"
+    priv: 'zabbix.*:ALL,GRANT'
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become: true
+
+# after zabbix installed
+- name: Import database (only once)
+  mysql_db:
+    name: zabbix
+    state: import
+    target: /usr/share/doc/zabbix-server-mysql/create.sql.gz
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  when: zabbix_db_first_created.changed == true
+  become: true
+
+- name: set zabbix-server conf password
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: 'DBPassword='
+    line: 'DBPassword={{ MYSQL_PASSWORD }}'
+  become: true
+  notify: restart zabbix-server
+
+- name: increase pinger
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: 'StartPingers=1'
+    line: "StartPingers=100"
+  become: true
+  notify: restart zabbix-server
+
+- name: enable service zabbix-server-mysql
+  systemd:
+    name: zabbix-server
+    state: started
+    enabled: yes
+  become: true
+
+- name: install zabbix web
+  package:
+    pkg: zabbix-frontend-php
+    state: latest
+  become: true
+
+- name: php timezone
+  replace:
+    path: /etc/zabbix/apache.conf
+    regexp: '^.*php_value date.timezone.*$'
+    replace: '        php_value date.timezone Asia/Shanghai'
+  become: true
+  notify: restart apache2
+
+- name: install fonts-wqy-zenhei
+  package:
+    pkg: fonts-wqy-zenhei
+    state: latest
+  become: true
+
+- name: make graphfont default
+  alternatives:
+    link: /usr/share/zabbix/fonts/graphfont.ttf
+    name: zabbix-frontend-font
+    path: /usr/share/fonts/truetype/wqy/wqy-zenhei.ttc
+    priority: 20
+  become: true
+
+- name: install zabbix agent
+  package:
+    pkg: zabbix-agent
+    state: latest
+  become: true
+
+- name: enable service zabbix-agent
+  systemd:
+    name: zabbix-agent
+    state: started
+    enabled: yes
+  become: true
+
+- name: install zabbix-get
+  package:
+    pkg: zabbix-get
+    state: latest
+  become: true
+

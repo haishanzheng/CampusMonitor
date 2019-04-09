@@ -1,0 +1,120 @@
+- name: enable ufw
+  ufw:
+    state: enabled
+    direction: incoming
+    policy: deny
+  become: true
+
+- name: copy user.rules
+  template: 
+    src: user.rules.j2 
+    dest: /etc/ufw/user.rules 
+    owner: root 
+    group: root
+  become: true
+  notify: restart ufw
+
+- name: copy user6.rules
+  template: 
+    src: user6.rules.j2 
+    dest: /etc/ufw/user6.rules 
+    owner: root 
+    group: root
+  become: true
+  notify: restart ufw
+
+- name: install fonts-wqy-zenhei
+  package:
+    pkg: fonts-wqy-zenhei
+    state: latest
+  become: true
+
+- name: install smokeping
+  package:
+    pkg: smokeping
+    state: latest
+  become: true
+
+- name: redirect smokeping web
+  copy: 
+    src: index.html
+    dest: /var/www/html/index.html
+  become: true
+
+- name: Probe add curl
+  blockinfile:
+    dest: /etc/smokeping/config.d/Probes
+    block: |
+            + Curl
+            binary = /usr/bin/curl
+            offset = 50%
+            step = 300
+            follow_redirects = yes
+            include_redirects = yes
+            urlformat = http://%host%/
+  become: true
+  notify: restart smokeping
+
+# begin target custom
+- name: test template file exists
+  local_action: stat path="roles/smokeping/templates/Targets.custom.j2"
+  register: targets_custom_template_j2_file_exists
+
+- name: copy smokeping Targets custom if exists
+  template: 
+    src: Targets.custom.j2
+    dest: /etc/smokeping/config.d/Targets.custom
+  when: targets_custom_template_j2_file_exists.stat.exists
+  become: true
+  notify: restart smokeping
+
+- name: test etc custom target file exists
+  stat: 
+    path: "/etc/smokeping/config.d/Targets.custom"
+  register: targets_custom_file_exists
+
+- name: smokeping Targets
+  template: 
+    src: Targets.j2
+    dest: /etc/smokeping/config.d/Targets
+  become: true
+  notify: restart smokeping
+# end target custom
+
+# begin slave
+
+- name: ensure slave dir exists
+  file:
+    path: /var/lib/smokeping/__cgi
+    state: directory
+    owner: smokeping
+    group: www-data
+    mode: 0770
+  become: true
+
+- name: ensure slave dir exists
+  file:
+    path: /var/lib/smokeping/__cgi/Slave
+    state: directory
+    owner: smokeping
+    group: www-data
+    mode: 0770
+  become: true
+
+- name: smokeping Slaves password
+  template: 
+    src: smokeping_secrets.j2
+    dest: /etc/smokeping/smokeping_secrets
+    owner: www-data
+    group: www-data
+  become: true
+  notify: restart smokeping
+
+- name: smokeping Slaves 
+  template: 
+    src: Slaves.j2
+    dest: /etc/smokeping/config.d/Slaves
+  become: true
+  notify: restart smokeping
+
+# end slave

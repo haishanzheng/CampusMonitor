@@ -1,0 +1,15 @@
+- name: restart apache2
+  service: name=apache2 state=restarted
+  become: true
+
+- name: reload apache2
+  service: name=apache2 state=reloaded
+  become: true
+
+- name: restart zabbix-server
+  service: name=zabbix-server state=restarted
+  become: true
+
+- name: restart grafana-server
+  service: name=grafana-server state=restarted
+  become: true

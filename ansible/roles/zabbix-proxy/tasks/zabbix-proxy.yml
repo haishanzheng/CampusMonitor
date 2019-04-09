@@ -1,0 +1,119 @@
+- name: Install a zabbix repo package from the internet.
+  apt:
+    deb: https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-2+bionic_all.deb
+  register: zabbix_repo_changed
+  become: true
+
+- name: Update apt cache after zabbix repo changed
+  apt: 
+    update_cache: yes
+  when: zabbix_repo_changed.changed
+  become: true
+
+- name: install zabbix proxy
+  package:
+    pkg: zabbix-proxy-mysql
+    state: latest
+  become: true
+
+- name: new zabbix-proxy db
+  mysql_db:
+    name: zabbix_proxy
+    encoding: utf8
+    collation: utf8_general_ci
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  register: zabbix_proxy_db_first_created 
+  become: true
+
+- name: add mysql user zabbix-proxy
+  mysql_user:
+    name: zabbix
+    password: "{{ MYSQL_PASSWORD }}"
+    priv: 'zabbix_proxy.*:ALL,GRANT'
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become: true
+
+# after zabbix installed
+- name: Import database (only once)
+  mysql_db:
+    name: zabbix_proxy
+    state: import
+    target: /usr/share/doc/zabbix-proxy-mysql/schema.sql.gz
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  when: zabbix_proxy_db_first_created.changed == true
+  become: true
+
+- name: set zabbix-proxy conf password
+  lineinfile:
+    path: /etc/zabbix/zabbix_proxy.conf
+    regexp: 'DBPassword='
+    line: 'DBPassword={{ MYSQL_PASSWORD }}'
+  become: true
+ 
+- name: set zabbix-proxy conf server
+  lineinfile:
+    path: /etc/zabbix/zabbix_proxy.conf
+    regexp: 'Server='
+    line: "Server={{ groups['zabbix-server'][0]}}"
+  become: true
+  notify: restart zabbix-proxy
+
+- name: set zabbix-proxy conf hostname
+  lineinfile:
+    path: /etc/zabbix/zabbix_proxy.conf
+    regexp: 'Hostname='
+    line: 'Hostname={{ PROXY_HOSTNAME }}'
+  become: true
+  notify: restart zabbix-proxy
+
+- name: increase pinger
+  lineinfile:
+    path: /etc/zabbix/zabbix_proxy.conf
+    regexp: 'StartPingers=1'
+    line: "StartPingers=100"
+  become: true
+  notify: restart zabbix-proxy
+
+- name: set zabbix-proxy conf EnableRemoteCommands
+  lineinfile:
+    path: /etc/zabbix/zabbix_proxy.conf
+    regexp: 'EnableRemoteCommands='
+    line: 'EnableRemoteCommands=1'
+  become: true
+  notify: restart zabbix-proxy
+
+- name: enable service zabbix-proxy-mysql
+  systemd:
+    name: zabbix-proxy
+    state: started
+    enabled: yes
+  become: true
+
+- name: install zabbix agent
+  package:
+    pkg: zabbix-agent
+    state: latest
+  become: true
+
+- name: set zabbix-agentd conf hostname
+  lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    regexp: 'Hostname='
+    line: 'Hostname={{ PROXY_HOSTNAME }}'
+  become: true
+  notify: restart zabbix-agent
+
+- name: enable service zabbix-agent
+  systemd:
+    name: zabbix-agent
+    state: started
+    enabled: yes
+  become: true
+
+- name: install zabbix-get
+  package:
+    pkg: zabbix-get
+    state: latest
+  become: true

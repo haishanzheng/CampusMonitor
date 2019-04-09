@@ -1,0 +1,19 @@
+- name: install mysql-server
+  package:
+    pkg: mysql-server
+    state: latest
+  become: true
+
+# mysql module need begin
+- name: install ConfigParser, pip
+  pip:
+    name: ConfigParser
+    state: latest
+  become: true
+
+- name: install PyMySQL, pip
+  pip:
+    name: PyMySQL
+    state: latest
+  become: true
+# mysql module need begin

@@ -1,0 +1,11 @@
+- name: restart apache2
+  service: name=apache2 state=restarted
+  become: true
+
+- name: reload apache2
+  service: name=apache2 state=reloaded
+  become: true
+
+- name: restart icinga2
+  service: name=icinga2 state=restarted
+  become: true

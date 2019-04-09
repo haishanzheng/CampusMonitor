@@ -1,0 +1,8 @@
+*** Slaves ***
+secrets=/etc/smokeping/smokeping_secrets
+
+{% for host in groups['smokeping-slave-server'] %}
++{{ hostvars[host]['SMOKEPING_SLAVE_NAME']}}
+display_name={{ hostvars[host]['SMOKEPING_SLAVE_NAME']}}
+color=0000ff
+{% endfor %}

@@ -1,0 +1,14 @@
+ADMIN_IPS: 
+  - 127.0.0.1
+  - 192.168.3.1
+  - 192.168.3.10
+
+MYSQL_PASSWORD: ZABBIX_ICINGA_PasSWord_what_ever_you_LIKE
+
+SMOKEPING_SLAVE_SECRETS: SomeSecretS
+
+ALLOW_HTTP_IPS: 
+  - 127.0.0.1
+  - 192.168.3.1
+
+ansible_python_interpreter: "/usr/bin/python3"

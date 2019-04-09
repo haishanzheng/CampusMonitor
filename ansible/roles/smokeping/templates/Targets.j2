@@ -1,0 +1,242 @@
+*** Targets ***
+
+probe = FPing
+
+menu = Top
+title = 信息中心监控
+remark = 欢迎来到网络服务厅，这里你可以看到你的网络和数据中心、互联网的互联的情况 \
+         欢迎提供监控点加入。
+
++ Cernet
+    menu = 教育网
+    title = 教育网
+    
+    ++ TsingHua
+        menu = 清华大学
+        title = 清华大学
+        host = www.tsinghua.edu.cn
+
+    ++ Sjtu
+        menu = 上海交通大学
+        title = 上海交通大学
+        host = www.sjtu.edu.cn
+
++ China
+    menu = 国内
+    title = 国内
+
+    ++ Sina
+        menu = 新浪
+        title = 新浪
+        host = www.sina.com.cn
+
+    ++ QQ
+        menu = QQ
+        title = QQ
+        host = www.qq.com
+
++ Overseas
+    menu = 国外
+    title = 国外
+
+
++ City
+    menu = 各大城市 
+    title = 各大城市 
+
+    ++ beijing-mobile 
+        menu = beijing-mobile 
+        title = beijing 221.130.33.2 
+        host = 221.130.33.2 
+    ++ tianjing-mobile 
+        menu = tianjing-mobile 
+        title = tianjing 211.137.160.5 
+        host = 211.137.160.5 
+    ++ chengdu-cnc 
+        menu = chengdu-cnc 
+        title = chengdu-cnc 221.10.254.1 
+        host = 221.10.254.1 
+    ++ heilongjiang-cnc 
+        menu = heilongjian-cnc 
+        title = heilongjiang-cnc 218.8.251.163 
+        host = 218.8.251.163 
+    ++ GuangDong-guangzhou
+        menu = 广州DNS1-cnc
+        title = 广州DNS1-cnc-221.4.66.66
+        host = 221.4.66.66
+    ++ GuangDong-guangzhou-1
+        menu = 广州DNS2-cnc
+        title = 广州DNS2-cnc-210.21.4.130
+        host = 210.21.4.130
+    ++ beijing-tel 
+        menu = beijing-tel 
+        title = beijing-tel 210.78.133.130 
+        host = 210.78.133.130 
+    ++ chengdu-tel 
+        menu = chengdu-tel 
+        title = chengdu-tel 61.139.2.69 
+        host = 61.139.2.69 
+    ++ chongqing-tel 
+        menu = chongqing-tel 
+        title = chongqing-tel 61.186.252.1 
+        host = 61.186.252.1 
+
+
+
++ Album
+
+menu = Album
+title = Album
+
++ BBS
+
+menu = BBS
+title = BBS
+
++ BLOG
+menu = BLOG Service Provider
+title = BLOG Service Provider
+
+++ Typepad
+
+menu = Typepad
+title = www.typepad.com
+host = www.typepad.com
+
++ School
+
+menu = School
+title = School
+
+++ Berkeley
+
+menu = Berkeley
+title = www.berkeley.edu
+host = www.berkeley.edu
+
+
+++ MIT
+
+menu = MIT
+title = www.mit.edu
+host = www.mit.edu
+
+++ Vigrinia
+
+menu = University of Virginia
+title = www.virginia.edu
+host = www.virginia.edu
+
+
++ SearchEngine
+
+menu = Search Engine
+title = Search Engine
+
+++ Baidu
+
+menu = Baidu
+title = www.baidu.com
+host = www.baidu.com
+
+++ Sohu
+
+menu = Sohu
+title = www.sohu.com
+host = www.sohu.com
+
+++ Yahoo
+
+menu = Yahoo
+title = www.yahoo.com
+host = www.yahoo.com
+
++ ISP
+
+menu = ISP
+title = ISP
+
+
+++ ATT
+
+menu = AT&T
+title = www.att.com
+host = www.att.com
+
+++ Verizon
+
+menu = Verizon
+title = www.verizon.com
+host = www.verizon.com
+
++ Others
+
+menu = Others
+title = Others
+
+++ QQ
+
+menu = QQ
+title = www.qq.com
+host = www.qq.com
+
+++ Wikipedia
+
+menu = Wikipedia
+title = www.wikipedia.org
+host = www.wikipedia.org
+
++ TaiwanISP
+
+menu = Taiwan ISP
+title = Taiwan ISP
+
+++ Giga
+
+menu = Giga
+title = www.giga.net.tw
+host = www.giga.net.tw
+
+++ SEEDNet
+
+menu = SEEDNet
+title = www.seed.net.tw
+host = www.seed.net.tw
+
+++ SONet
+
+menu = SO-Net
+title = www.so-net.net.tw
+host = www.so-net.net.tw
+
+
++ Web
+menu = Web
+title = Web
+
+++ xmu
+    menu = www.xmu.edu.cn
+    title = www.xmu.edu.cn
+    probe = Curl
+    host = www.xmu.edu.cn
+
+++ tsinghua
+    menu = www.tsinghua.edu.cn
+    title = www.tsinghua.edu.cn
+    probe = Curl
+    host = www.tsinghua.edu.cn
+
+++ qq
+    menu = www.qq.com
+    title = www.qq.com
+    probe = Curl
+    host = www.qq.com
+
++ WebAll
+    menu = WebAll
+    title = WebAll
+    host = /Web/xmu /Web/tsinghua /Web/qq
+
+{% if targets_custom_file_exists.stat.exists %}
+@include /etc/smokeping/config.d/Targets.custom
+{% endif %}

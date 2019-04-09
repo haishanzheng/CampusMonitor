@@ -1,0 +1,82 @@
+- name: enable ufw
+  ufw:
+    state: enabled
+    direction: incoming
+    policy: deny
+  become: true
+
+- name: copy user.rules
+  template: 
+    src: user.rules.j2 
+    dest: /etc/ufw/user.rules 
+    owner: root 
+    group: root
+  become: true
+  notify: restart ufw
+
+- name: copy user6.rules
+  template: 
+    src: user6.rules.j2 
+    dest: /etc/ufw/user6.rules 
+    owner: root 
+    group: root
+  become: true
+  notify: restart ufw
+
+- name: install fonts-wqy-zenhei
+  package:
+    pkg: fonts-wqy-zenhei
+    state: latest
+  become: true
+
+- name: install smokeping
+  package:
+    pkg: smokeping
+    state: latest
+  become: true
+
+# begin config /etc/default/smokeping
+
+- name: smokeping slave config
+  lineinfile:
+    path: /etc/default/smokeping
+    regexp: '^MODE='
+    line: 'MODE=slave'
+  become: true
+  notify: restart smokeping
+
+- name: smokeping slave config
+  lineinfile:
+    path: /etc/default/smokeping
+    regexp: '^#* *MASTER_URL='
+    line: "MASTER_URL=http://{{ groups['smokeping-server'][0] }}/smokeping/smokeping.cgi"
+  become: true
+  notify: restart smokeping
+
+- name: smokeping slave secrets
+  copy: 
+    content: "{{ SMOKEPING_SLAVE_SECRETS }}"
+    dest: /etc/smokeping/slavesecrets.conf
+    owner: smokeping
+    group: smokeping
+    mode: 0400
+  become: true
+  notify: restart smokeping
+
+- name: smokeping slave config
+  lineinfile:
+    path: /etc/default/smokeping
+    regexp: '^#* *SHARED_SECRET=/etc/smokeping/slavesecrets.conf'
+    line: 'SHARED_SECRET=/etc/smokeping/slavesecrets.conf'
+  become: true
+  notify: restart smokeping
+
+- name: smokeping slave config
+  lineinfile:
+    path: /etc/default/smokeping
+    regexp: '^#* *SLAVE_NAME='
+    line: 'SLAVE_NAME={{ SMOKEPING_SLAVE_NAME }}'
+  become: true
+  notify: restart smokeping
+
+# end config /etc/default/smokeping

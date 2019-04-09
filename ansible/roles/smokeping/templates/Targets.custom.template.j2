@@ -1,0 +1,11 @@
+
+
++ Slave
+menu = Slave
+title = Slave
+
+++ xmuwww
+        menu = 厦门大学
+        title = 厦门大学
+        host = www.xmu.edu.cn
+        slaves = {% for host in groups['smokeping-slave-server'] %}{{ hostvars[host]['SMOKEPING_SLAVE_NAME']}} {% endfor %}

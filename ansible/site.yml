@@ -1,0 +1,32 @@
+---
+- name: zabbix
+  hosts: zabbix-server
+  roles:
+    - common
+    - zabbix
+
+- name: zabbix-proxy
+  hosts: zabbix-proxy-server
+  roles:
+    - common
+    - zabbix-proxy
+
+- name: icinga
+  hosts: icinga-server
+  roles:
+    - common
+    - icinga
+
+- name: smokeping
+  hosts: smokeping-server
+  roles:
+    - common
+    - smokeping
+  tags: debug
+
+- name: smokeping-slave
+  hosts: smokeping-slave-server
+  roles:
+    - common
+    - smokeping-slave
+  tags: debug

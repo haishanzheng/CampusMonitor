@@ -1,0 +1,32 @@
+- name: enable ufw
+  ufw:
+    state: enabled
+    direction: incoming
+    policy: deny
+  become: true
+
+- name: copy user.rules
+  template: 
+    src: user.rules.j2 
+    dest: /etc/ufw/user.rules 
+    owner: root 
+    group: root
+  become: true
+  notify: restart ufw
+
+- name: copy user6.rules
+  template: 
+    src: user6.rules.j2 
+    dest: /etc/ufw/user6.rules 
+    owner: root 
+    group: root
+  become: true
+  notify: restart ufw
+
+- name: install python3-pip
+  package:
+    pkg: python3-pip
+    state: latest
+  become: true
+
+- import_tasks: icinga.yml

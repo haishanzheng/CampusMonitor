@@ -1,0 +1,126 @@
+- name: Add icinga apt-key
+  apt_key:
+    data: "{{ lookup('file', 'icinga.key') }}"
+    state: present
+  become: true
+
+- name: add icinga repo
+  apt_repository:
+    repo: deb https://packages.icinga.com/ubuntu icinga-bionic main
+    state: present
+    filename: 'bionic-icinga'
+  register: icinga_repo_changed
+  become: true
+
+- name: Update apt cache after repo changed
+  apt: 
+    update_cache: yes
+  when: icinga_repo_changed.changed
+  become: true
+
+- name: install icinga2
+  package:
+    pkg: icinga2
+    state: latest
+  become: true
+
+- name: enable service icinga2
+  systemd:
+    name: icinga2
+    state: started
+    enabled: yes
+  become: true
+
+- name: install monitoring-plugins
+  package:
+    pkg: monitoring-plugins
+    state: latest
+  become: true  
+
+- import_tasks: mysql.yml
+
+- name: install mysql-client
+  package:
+    pkg: mysql-client
+    state: latest
+  become: true
+
+- name: install icinga2-ido-mysql
+  package:
+    pkg: icinga2-ido-mysql
+    state: latest
+  become: true
+
+# icinga2 database auto created
+# password in /etc/dbconfig-common/icinga2-ido-mysql.conf
+
+- name: Enable ido-mysql feature
+  icinga2_feature:
+    name: ido-mysql
+    state: present
+  become: true
+  notify: restart icinga2
+
+- name: setup icinga2 api, run once
+  command: icinga2 api setup
+  args: 
+    creates: /var/lib/icinga2/ca/ca.key
+  become: true
+
+- name: install apache2
+  package:
+    pkg: apache2
+    state: latest
+  become: true
+
+- name: enable service apache2
+  systemd:
+    name: apache2
+    state: started
+    enabled: yes
+  become: true
+
+- name: install icingaweb2
+  package:
+    name: 
+      - icingaweb2
+      - libapache2-mod-php
+      - icingacli
+      - php-gd
+    state: latest
+  become: true
+  notify: reload apache2
+
+- name: set php timezone
+  lineinfile:
+    path: /etc/php/7.2/apache2/php.ini
+    regexp: '^;*date.timezone ='
+    line: 'date.timezone = Asia/Shanghai'
+  become: true
+  notify: reload apache2
+
+# create icingaweb_db
+- name: new icingaweb db
+  mysql_db:
+    name: icingaweb2
+    encoding: utf8
+    collation: utf8_general_ci
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become: true
+
+- name: add mysql user icingaweb
+  mysql_user:
+    name: icingaweb2
+    password: "{{ MYSQL_PASSWORD }}"
+    priv: 'icingaweb2.*:ALL,GRANT'
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become: true
+
+# - name: create web setup token
+#   command: icingacli setup token create
+#   args: 
+#     creates: /etc/icingaweb2/setup.token
+#   become: true
+

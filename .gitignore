@@ -1,0 +1,5 @@
+/ansible/group_vars/all.yml
+/ansible/site.retry
+/.vagrant
+/*.log
+/ansible/roles/smokeping/templates/Targets.custom.j2

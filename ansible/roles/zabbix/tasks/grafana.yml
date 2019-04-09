@@ -1,0 +1,40 @@
+- name: Add grafana apt-key
+  apt_key:
+    data: "{{ lookup('file', 'grafana.gpg.key') }}"
+    state: present
+  become: true
+
+- name: add grafana repo
+  apt_repository:
+    repo: deb https://packages.grafana.com/oss/deb beta main
+    state: present
+    filename: 'grafana'
+  register: grafana_repo_changed
+  become: true
+
+- name: Update apt cache after repo changed
+  apt: 
+    update_cache: yes
+  when: grafana_repo_changed.changed
+  become: true
+
+- name: install grafana
+  package:
+    pkg: grafana
+    state: latest
+  become: true
+
+- name: enable service grafana
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes
+  become: true
+
+- name: Install - update Grafana alexanderzobnin-zabbix-app plugin
+  grafana_plugin:
+    name: alexanderzobnin-zabbix-app
+    version: latest
+    state: present
+  notify: restart grafana-server
+  become: true

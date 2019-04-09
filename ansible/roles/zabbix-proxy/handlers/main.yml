@@ -1,0 +1,8 @@
+- name: restart zabbix-proxy
+  service: name=zabbix-proxy state=restarted
+  become: true
+
+- name: restart zabbix-agent
+  service: name=zabbix-agent state=restarted
+  become: true
+
