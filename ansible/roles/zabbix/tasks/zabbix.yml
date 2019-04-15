@@ -94,7 +94,7 @@
     state: latest
   become: true
 
-- name: make graphfont default
+- name: make zenhei default
   alternatives:
     link: /usr/share/zabbix/fonts/graphfont.ttf
     name: zabbix-frontend-font

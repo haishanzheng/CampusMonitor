@@ -19,6 +19,25 @@
 
 如果要重来或删除虚拟机们，运行vagrant destroy。
 
+## GUI登录到VirtualBox的虚拟机
+
+打开VirtualBox，打开GUI，使用用户名vagrant，密码vagrant登录。
+
+## SSH登录到VirtualBox的虚拟机
+
+IP为 192.168.3.xx
+Private Key为项目目录里面的 .vagrant/machines/#{hostname}/virtualbox/private_key
+
+可以登录主控服务器后，通过ssh -i /vagrantkeys/cm-icinga-private_key 192.168.3.13
+
+## 非Vagrant方法
+
+提供虚拟机
+
+在Ansible根目录建立production.ini，里面按照staging.ini编写远程服务器IP地址。不想安装的服务器可以不写。
+
+ansible-playbook site.yml -i production.ini
+
 ## 配置
 
 ### Zabbix
